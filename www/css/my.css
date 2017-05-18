@@ -1,0 +1,18 @@
+
+.main-page {
+    background:  transparent url(../../img/bg.jpg) no-repeat center center;
+    background-size: cover;
+}
+
+
+#firstname {
+        background:  transparent url(../../img/bg.jpg) no-repeat center center;
+    background-size: cover;
+}
+body{
+    background: url(../../img/bg.jpg)) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}

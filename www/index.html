@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta content="telephone=no" name="format-detection">
+	<meta content="no" name="msapplication-tap-highlight">
+	<meta content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" name="viewport"><!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
+	<!-- <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
+    <!== <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
+	<link href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" rel="stylesheet">
+	<script src="http://code.jquery.com/jquery-1.11.1.min.js">
+	</script>
+	<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js">
+	</script>
+	<title>Phonegap game demo</title>
+</head>
+<body>
+	<script src="cordova.js" type="text/javascript">
+	</script> 
+	<script src="js/index.js" type="text/javascript">
+	</script> 
+	<script type="text/javascript">
+    app.initialize();
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+    function onDeviceReady()
+    {
+    	AndroidFullScreen.immersiveMode(null, null);
+    	var myMedia;
+    	var loop = function(status)
+    	{
+    		if (status === Media.MEDIA_STOPPED)
+    		{
+    			myMedia.play();
+    		}
+    	};
+    	var loop2 = function(status)
+    	{
+    		if (status === Media.MEDIA_STOPPED)
+    		{
+    			myMedia.play();
+    		}
+    	};
+    	myMedia = new Media("/music/Neoishiki.mp3", null, null, loop); // for desktop
+    	myMedia2 = new Media("/android_asset/www/music/Neoishiki.mp3", null, null, loop2); // for android
+    	myMedia.play();
+    	myMedia2.play()
+    }
+    $(document).on("pagecreate", function()
+    {
+    	$(document).on("pagecontainershow", function()
+    	{
+    		$(".ui-content").height(getRealContentHeight());
+    	})
+    	$(window).on("resize orientationchange", function()
+    	{
+    		$(".ui-content").height(getRealContentHeight());
+    	})
+
+    	function getRealContentHeight()
+    	{
+    		var activePage = $.mobile.pageContainer.pagecontainer("getActivePage"),
+    			screen = $.mobile.getScreenHeight(),
+    			header = $(".ui-header").hasClass("ui-header-fixed") ? $(".ui-header").outerHeight() - 1 : $(".ui-header").outerHeight(),
+    			footer = $(".ui-footer").hasClass("ui-footer-fixed") ? $(".ui-footer").outerHeight() - 1 : $(".ui-footer").outerHeight(),
+    			contentMargins = $(".ui-content", activePage).outerHeight() - $(".ui-content", activePage).height();
+    		var contentHeight = screen - header - footer - contentMargins;
+    		return contentHeight;
+    	}
+    });
+
+    function update_scores()
+    {
+	// get scores from localstorage and add names from  rest api
+    	var b = JSON.parse(localStorage.getItem('scores'));
+    	var scores = b.map(Number);
+    	var num = scores.length
+    	var xmlhttp = new XMLHttpRequest();
+    	xmlhttp.onreadystatechange = function()
+    	{
+    		if (this.readyState == 4 && this.status == 200)
+    		{
+    			myArr = JSON.parse(this.responseText);
+    			var score_string = ""
+    			for (var i = 0; i < num; i++)
+    			{
+    				score_string += scores[i] + " ... " + myArr[i].name + "<br />"
+    			}
+    			document.getElementById("scoreboard").innerHTML = score_string;
+    		}
+    	};
+    	xmlhttp.open("GET", "http://uinames.com/api/?amount=" + num, true);
+    	xmlhttp.send();
+    }
+    $(document).on("pageshow", "#game", function()
+    {
+    	reset();
+    	disabled = 0;
+    });
+    $(document).on("pageshow", "#scores", function()
+    {
+    	update_scores();
+    });
+    $(document).on("pageshow", "#settingss", function()
+    {
+    	if (localStorage.getItem("difficulty") === null)
+    	{
+    		localStorage.setItem('difficulty', "1");
+    	}
+    	document.getElementById("slider-1").value = parseInt(localStorage.getItem('difficulty'));
+    });
+    $(document).on("pagebeforehide", "#settings", function()
+    {
+    	localStorage.setItem('difficulty', $('input[name=slider-1]').val());
+    });
+
+    function share_score()
+    {
+    	var b = JSON.parse(localStorage.getItem('scores'));
+    	scores = b.map(Number);
+    	// this is the complete list of currently supported params you can pass to the plugin (all optional)
+    	var options = {
+    		message: 'I scored ' + Math.max(scores) + " on a game!", // not supported on some apps (Facebook, Instagram)
+    		subject: 'the subject', // fi. for email
+    		files: ['', ''], // an array of filenames either locally or remotely
+    		url: 'url here if i had one',
+    		chooserTitle: 'Share your score' // Android only, you can override the default share sheet title
+    	}
+    	var onSuccess = function(result)
+    	{
+    		console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+    		console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+    	}
+    	var onError = function(msg)
+    	{
+    		console.log("Sharing failed with message: " + msg);
+    	}
+    	window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+    }	         
+	</script> <!-- Start of first page -->
+	<div data-role="page" id="menu">
+		<div data-role="header">
+			<h1>Endless runner game</h1>
+		</div><!-- /header -->
+		<div class="ui-content" role="main">
+			<div class="main-page">
+				<div>
+					Super Mega Hyper Awesome game!
+				</div>
+				<p><a href="#game">Play Game</a></p>
+				<p><a href="#settings">Settings</a></p>
+				<p><a href="#scores">High-Scores</a></p>
+			</div>
+		</div><!-- /content -->
+		<div data-role="footer">
+			<h4>Copyright</h4>
+		</div><!-- /footer -->
+	</div><!-- /page -->
+	<div data-role="page" id="game">
+		<div class="ui-content" role="main">
+			<canvas height="100" id="canvas" width="200"></canvas>
+			<script src="js/game.js" type="text/javascript">
+			</script>
+		</div><!-- /content -->
+		<script>
+		</script>
+	</div><!-- /page -->
+	<div data-role="page" id="settings">
+		<div data-role="header">
+			<h1>Settings</h1>
+		</div><!-- /header -->
+		<div class="ui-content" role="main">
+			<form>
+				<label for="slider-1">Difficulty:</label> <input id="slider-1" max="100" min="1" name="slider-1" type="range" value="1">
+			</form>
+			<p><a href="#menu">Back to menu</a></p>
+		</div><!-- /content -->
+		<div data-role="footer">
+			<h4>copyright</h4>
+		</div><!-- /footer -->
+	</div><!-- /page -->
+	<div data-role="page" id="scores">
+		<div data-role="header">
+			<h1>High scores</h1>
+		</div><!-- /header -->
+		<div class="ui-content" role="main">
+			<div id="scoreboard">
+				Currently empty
+			</div><button onclick="window.plugins.socialsharing.share('Message only')">share scores</button>
+			<p><a href="#menu">Back to menu</a></p>
+		</div><!-- /content -->
+		<div data-role="footer">
+			<h4>copyright</h4>
+		</div><!-- /footer -->
+	</div><!-- /page -->
+</body>
+</html>
